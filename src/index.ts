@@ -1,21 +1,32 @@
-import { MikroORM, RequestContext, RequiredEntityData } from "@mikro-orm/core";
+import { MikroORM, RequestContext } from "@mikro-orm/core";
 import { __prod__ } from "./constants";
-import { Post } from "./entities/Post";
 import mikroOrmConfig from "./mikro-orm.config";
+import express from "express";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
+import { HelloResolver } from "./resolvers/hello";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroOrmConfig);
 
   await orm.getMigrator().up();
-  await RequestContext.createAsync(orm.em, async () => {
-    // const post = orm.em.create(Post, {
-    //   id: 1,
-    //   title: "my first post",
-    // } as RequiredEntityData<Post>);
-    // await orm.em.persistAndFlush(post);
+  await RequestContext.createAsync(orm.em, async () => {});
 
-    const posts = orm.em.find(Post, {});
-    posts.then(console.log);
+  const app = express();
+
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver],
+      validate: false,
+    }),
+  });
+
+  await apolloServer.start();
+
+  apolloServer.applyMiddleware({ app });
+
+  app.listen(4000, () => {
+    console.log("Listening on port 4000");
   });
 };
 
