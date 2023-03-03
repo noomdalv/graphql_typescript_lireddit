@@ -8,24 +8,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@mikro-orm/core");
-const constants_1 = require("./constants");
 const Post_1 = require("./entities/Post");
+const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    const orm = yield core_1.MikroORM.init({
-        entities: [Post_1.Post],
-        dbName: "lireddit",
-        type: "postgresql",
-        debug: !constants_1.__prod__,
-    });
-    const post = orm.em.create(Post_1.Post, {
-        id: 1,
-        title: "my first post",
-    });
-    yield orm.em.persistAndFlush(post);
-    console.log("====== SQL 2 =======");
-    yield orm.em.insert(Post_1.Post, { title: "my second post" });
+    const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
+    yield orm.getMigrator().up();
+    yield core_1.RequestContext.createAsync(orm.em, () => __awaiter(void 0, void 0, void 0, function* () {
+        const posts = orm.em.find(Post_1.Post, {});
+        posts.then(console.log);
+    }));
 });
 main().catch((err) => console.log(err));
 //# sourceMappingURL=index.js.map

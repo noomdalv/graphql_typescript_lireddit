@@ -11,6 +11,6 @@ export class Post {
   @Property({ onUpdate: () => new Date() })
   updatedAt: Date = new Date();
 
-  @Property()
+  @Property({ type: "text" })
   title!: string;
 }
