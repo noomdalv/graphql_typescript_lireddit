@@ -12,6 +12,14 @@ const main = async () => {
 
   await orm.getMigrator().up();
 
+  // await RequestContext.createAsync(orm.em, async () => {
+  //   const post = orm.em.create(Post, {
+  //     id: 3,
+  //     title: "3rd post",
+  //   } as RequiredEntityData<Post>);
+  //   await orm.em.persistAndFlush(post);
+  // });
+
   const app = express();
 
   const apolloServer = new ApolloServer({
