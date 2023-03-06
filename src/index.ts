@@ -38,16 +38,16 @@ const main = async () => {
     disableTouch: true,
   });
 
-  // Initialize sesssion storage.
+  // Initialize session storage.
   app.use(
     session({
       name: "qid",
       store: redisStore,
       resave: false, // required: force lightweight session keep alive (touch)
       saveUninitialized: false, // recommended: only save session when data exists
-      proxy: true,
+      proxy: true, // x-forwarded-proto set to https
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, //years
+        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
         sameSite: "none",
         secure: true, // https active only in prod
