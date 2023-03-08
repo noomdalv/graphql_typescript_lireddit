@@ -4,7 +4,7 @@ import {
   Input,
   FormErrorMessage,
 } from "@chakra-ui/react";
-import { FieldHookConfig, useField } from "formik";
+import { useField } from "formik";
 import React from "react";
 
 type InputFieldProps = {
