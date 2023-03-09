@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@mikro-orm/core");
+const constants_1 = require("./constants");
 const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 const express_1 = __importDefault(require("express"));
 const apollo_server_express_1 = require("apollo-server-express");
@@ -23,10 +24,15 @@ const user_1 = require("./resolvers/user");
 const connect_redis_1 = __importDefault(require("connect-redis"));
 const express_session_1 = __importDefault(require("express-session"));
 const redis_1 = require("redis");
+const cors_1 = __importDefault(require("cors"));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const orm = yield core_1.MikroORM.init(mikro_orm_config_1.default);
     yield orm.getMigrator().up();
     const app = (0, express_1.default)();
+    app.use((0, cors_1.default)({
+        origin: "http://localhost:3000",
+        credentials: true,
+    }));
     const redisClient = (0, redis_1.createClient)();
     redisClient.connect().catch(console.error);
     const redisStore = new connect_redis_1.default({
@@ -39,12 +45,12 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         store: redisStore,
         resave: false,
         saveUninitialized: false,
-        proxy: true,
+        proxy: false,
         cookie: {
             maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
             httpOnly: true,
-            sameSite: "none",
-            secure: true,
+            sameSite: "lax",
+            secure: constants_1.__prod__,
         },
         secret: "keyboard cat",
     }));
@@ -60,11 +66,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         }),
     });
     yield apolloServer.start();
-    const cors = {
-        credentials: true,
-        origin: "https://studio.apollographql.com",
-    };
-    apolloServer.applyMiddleware({ app, cors });
+    apolloServer.applyMiddleware({ app, cors: false });
     app.listen(4000, () => {
         console.log("Listening on port 4000");
     });

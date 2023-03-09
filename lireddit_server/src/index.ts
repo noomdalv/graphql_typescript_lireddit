@@ -7,11 +7,11 @@ import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-
 import RedisStore from "connect-redis";
 import session from "express-session";
 import { createClient } from "redis";
 import { MyContext } from "./types";
+import cors from "cors";
 
 const main = async () => {
   const orm = await MikroORM.init(mikroOrmConfig);
@@ -27,11 +27,16 @@ const main = async () => {
 
   const app = express();
 
-  // Initialize client.
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
+
   const redisClient = createClient();
   redisClient.connect().catch(console.error);
 
-  // Initialize store.
   const redisStore = new RedisStore({
     client: redisClient,
     prefix: "myapp:",
@@ -45,12 +50,12 @@ const main = async () => {
       store: redisStore,
       resave: false, // required: force lightweight session keep alive (touch)
       saveUninitialized: false, // recommended: only save session when data exists
-      proxy: true, // x-forwarded-proto set to https
+      proxy: false, // x-forwarded-proto set to https
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
-        sameSite: "none",
-        secure: true, // https active only in prod
+        sameSite: "lax",
+        secure: __prod__, // https active only in prod
       },
       secret: "keyboard cat",
     })
@@ -70,12 +75,7 @@ const main = async () => {
 
   await apolloServer.start();
 
-  const cors = {
-    credentials: true,
-    origin: "https://studio.apollographql.com",
-  };
-
-  apolloServer.applyMiddleware({ app, cors });
+  apolloServer.applyMiddleware({ app, cors: false });
 
   app.listen(4000, () => {
     console.log("Listening on port 4000");
